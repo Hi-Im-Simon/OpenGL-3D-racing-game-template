@@ -31,8 +31,8 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include "constants.h"
 #include "lodepng.h"
 #include "shaderprogram.h"
-#include "myCube.h"
-#include "myTeapot.h"
+#include "Models/myCube.h"
+#include "Models/myTeapot.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -159,7 +159,7 @@ void initOpenGLProgram(GLFWwindow* window) {
 
 	sp=new ShaderProgram("v_simplest.glsl", NULL, "f_simplest.glsl");
 	tex0 = readTexture("Textures/Formula.png");
-	tex1 = readTexture("metal_spec.png");
+	tex1 = readTexture("Textures/metal_spec.png");
 
 	loadModel(std::string("Models/Formula.fbx"));
 }

@@ -1,7 +1,12 @@
 ﻿  main_file.cpp
-C:\Code\Graphics-project\main_file.cpp(130,20): warning C4018: '<': signed/unsigned mismatch
-C:\Code\Graphics-project\main_file.cpp(142,20): warning C4018: '<': signed/unsigned mismatch
-C:\Code\Graphics-project\main_file.cpp(145,21): warning C4018: '<': signed/unsigned mismatch
-C:\Code\Graphics-project\main_file.cpp(262,39): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-C:\Code\Graphics-project\main_file.cpp(263,39): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+C:\Code\Graphics-project\Model.h(48,21): warning C4018: '<': signed/unsigned mismatch
+C:\Code\Graphics-project\Model.h(60,21): warning C4018: '<': signed/unsigned mismatch
+C:\Code\Graphics-project\Model.h(63,22): warning C4018: '<': signed/unsigned mismatch
+C:\Code\Graphics-project\Model.h(70,1): warning C4305: '+=': truncation from 'double' to 'float'
+C:\Code\Graphics-project\Model.h(71,1): warning C4305: '-=': truncation from 'double' to 'float'
+C:\Code\Graphics-project\Model.h(72,1): warning C4305: '*=': truncation from 'double' to 'float'
+C:\Code\Graphics-project\Model.h(74,77): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Code\Graphics-project\Model.h(75,84): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Code\Graphics-project\main_file.cpp(165,43): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+C:\Code\Graphics-project\main_file.cpp(166,43): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
   bio_szkielet_12_win.vcxproj -> C:\Code\Graphics-project\Debug\bio_szkielet_12_win.exe

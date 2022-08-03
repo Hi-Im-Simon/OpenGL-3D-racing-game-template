@@ -20,6 +20,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="constants.h" />
+    <ClInclude Include="Model.h" />
+    <ClInclude Include="Texture.h" />
     <ClInclude Include="lodepng.h" />
     <ClInclude Include="myCube.h" />
     <ClInclude Include="myTeapot.h" />

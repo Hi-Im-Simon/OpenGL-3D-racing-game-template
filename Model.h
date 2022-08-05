@@ -31,6 +31,8 @@ public:
 	GLuint tex;
 	float angular_speed = 0.0f;
 	float linear_speed = 0.0f;
+	float x, y, z;
+	float angular_displacement;
 
 	Model() {}
 	Model(std::string filename) {
@@ -75,7 +77,7 @@ public:
 		else if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) angular_speed = -0.01 * (linear_speed * 2 / 10);
 		else angular_speed = 0;
 
-		std::cout << linear_speed << std::endl;
+		/*std::cout << linear_speed << std::endl;*/
 	}
 
 	void readTexture(std::string filename) {
@@ -101,8 +103,20 @@ public:
 	void drawModel(glm::mat4 P, glm::mat4 V) {
 		sp->use();//Aktywacja programu cieniującego
 	//Przeslij parametry programu cieniującego do karty graficznej
-		M = glm::rotate(M, angular_speed, glm::vec3(0.0f, 1.0f, 0.0f));
-		M = glm::translate(M, glm::vec3(-2.0f * linear_speed, 0.0f, 0.0f));
+		M = glm::mat4(1.0f);
+
+		angular_displacement += angular_speed;
+		x += -1 * linear_speed * glm::cos(angular_displacement);
+		z += linear_speed * glm::sin(angular_displacement);
+
+		std::cout << x << z << std::endl;
+
+		M = glm::translate(M, glm::vec3(x, y, z));
+		M = glm::rotate(M, angular_displacement, glm::vec3(0.0f, 1.0f, 0.0f));
+
+		/*M = glm::rotate(M, angular_speed, glm::vec3(0.0f, 1.0f, 0.0f));
+		M = glm::translate(M, glm::vec3(-2.0f * linear_speed, 0.0f, 0.0f));*/
+
 		glUniformMatrix4fv(sp->u("P"), 1, false, glm::value_ptr(P));
 		glUniformMatrix4fv(sp->u("V"), 1, false, glm::value_ptr(V));
 		glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M));
@@ -121,6 +135,12 @@ public:
 		glBindTexture(GL_TEXTURE_2D, tex);
 
 		glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, indices.data()); //Narysuj obiekt
+
+		//double mv[16];
+		//glGetDoublev(GL_MODELVIEW_MATRIX, mv);
+		//x = mv[13];
+		//y = mv[14];
+		//z = mv[15];
 
 		glDisableVertexAttribArray(sp->a("vertex"));  //Wyłącz przesyłanie danych do atrybutu vertex
 		glDisableVertexAttribArray(sp->a("normal"));  //Wyłącz przesyłanie danych do atrybutu normal

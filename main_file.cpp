@@ -40,7 +40,9 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include "Model.h"
 
 Model Car("Models/Formula.fbx");
-Model LowPolyCar("Models/Car1.fbx");
+Model LowPolyCar("Models/Formula.fbx");
+
+glm::mat4 V;
 
 float speed_x=0;
 float speed_y=0;
@@ -103,30 +105,29 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 	//************Tutaj umieszczaj kod rysujący obraz******************l
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear buffer
 
-	glm::mat4 V=glm::lookAt(
-         glm::vec3(0, 3000, 1), // camera position (eye)
-         glm::vec3(0, 0, 0), // camera lookat point (center)
-         glm::vec3(0.0f, 1.0f, 0.0f) // where is up
-	);
 
+	V = glm::lookAt(
+		glm::vec3(Car.x+1, Car.y, Car.z), // camera position (eye)
+		glm::vec3(Car.x, Car.y, Car.z), // camera lookat point (center)
+		glm::vec3(0.0f, 1.0f, 0.0f) // where is up
+	);
+	
+
+	/*std::cout << Car.linear_speed << Car.angular_speed << std::endl;*/
+	
+	/*V = glm::translate(V, glm::vec3(2.0f * Car.linear_speed, 0.0f, 0.0f)); */
+
+	V = glm::rotate(V, -Car.angular_displacement, glm::vec3(0.0f, 1.0f, 0.0f));
+	V = glm::translate(V, glm::vec3(-750.0f, -250.0f, 0.0f));
+	
     glm::mat4 P = glm::perspective(
 		(50.0f*PI) / 180.0f, // FoV
 		aspectRatio, // window (width/height)
 		0.2f, // near clipping plane
 		50000.0f // far clipping plane
 	);
-
-	//Car.M = glm::mat4(1.0f);
-	/*Car.M = glm::rotate(Car.M, angle_y, glm::vec3(1.0f, 0.0f, 0.0f));
-	Car.M = glm::rotate(Car.M, angle_x, glm::vec3(0.0f, 1.0f, 0.0f));*/
-	/*Car.M = glm::translate(Car.M, glm::vec3(0.0f, -100.0f, 0.0f));*/
+	LowPolyCar.drawModel(P, V);
 	Car.drawModel(P, V);
-
-	/*variable_pos = glm::mat4(1.0f);
-	variable_pos = glm::rotate(variable_pos, angle_y, glm::vec3(1.0f, 0.0f, 0.0f));
-	variable_pos = glm::rotate(variable_pos, angle_x, glm::vec3(0.0f, 1.0f, 0.0f));
-
-	LowPolyCar.drawModel(P, V, variable_pos);*/
 
     glfwSwapBuffers(window); //Przerzuć tylny bufor na przedni
 }

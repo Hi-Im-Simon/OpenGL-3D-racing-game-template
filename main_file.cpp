@@ -35,15 +35,17 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include <assimp/postprocess.h>
 
 #include "constants.h"
-#include "lodepng.h"
 #include "shaderprogram.h"
 #include "Model.h"
 
 Model Car("Models/Formula.fbx");
-Model LowPolyCar("Models/Car1.fbx");
+Model LowPolyCar("Models/Formula.fbx");
+Model Sphere("Models/Sphere.fbx");
+Model Grass("Models/Grass.fbx", 200);
+Model Track("Models/Track.fbx", 50);
 
-float speed_x=0;
-float speed_y=0;
+
+
 float aspectRatio=1;
 
 
@@ -54,7 +56,6 @@ void error_callback(int error, const char* description) {
 
 
 void keyCallback(GLFWwindow* window,int key,int scancode,int action,int mods) {
-	std::cout << "xxx" << std::endl;
     /*if (action == GLFW_REPEAT) {
         if (key == GLFW_KEY_LEFT) speed_x=-PI/2;
         if (key == GLFW_KEY_RIGHT) speed_x=PI/2;
@@ -79,14 +80,16 @@ void windowResizeCallback(GLFWwindow* window, int width, int height) {
 //Procedura inicjująca
 void initOpenGLProgram(GLFWwindow* window) {
 	//************Tutaj umieszczaj kod, który należy wykonać raz, na początku programu************
-	glClearColor(0,0,0,1);
+	glClearColor(0, 0, 0, 1);
 	glEnable(GL_DEPTH_TEST);
 	glfwSetWindowSizeCallback(window,windowResizeCallback);
 	glfwSetKeyCallback(window,keyCallback);
 
-	sp=new ShaderProgram("v_simplest.glsl", NULL, "f_simplest.glsl");
+	sp = new ShaderProgram("v_simplest.glsl", NULL, "f_simplest.glsl");
 	Car.readTexture("Textures/Formula.png");
-	LowPolyCar.readTexture("Textures/Car1.png");
+	Sphere.readTexture("Textures/Sphere.png");
+	Grass.readTexture("Textures/Grass.png");
+	Track.readTexture("Textures/Track.png");
 }
 
 
@@ -99,48 +102,64 @@ void freeOpenGLProgram(GLFWwindow* window) {
 
 
 //Procedura rysująca zawartość sceny
-void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
+void drawScene(GLFWwindow* window) {
 	//************Tutaj umieszczaj kod rysujący obraz******************l
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear buffer
 
-	glm::mat4 V=glm::lookAt(
-         glm::vec3(0, 3000, 1), // camera position (eye)
-         glm::vec3(0, 0, 0), // camera lookat point (center)
-         glm::vec3(0.0f, 1.0f, 0.0f) // where is up
+	glm::mat4 V = glm::lookAt(
+		glm::vec3(
+			Car.x + (450.0f * glm::cos(Car.angular_displacement)),
+			Car.y + 150.0f,
+			Car.z - (450.0f * glm::sin(Car.angular_displacement))
+		), // camera position (eye)
+		glm::vec3(
+			Car.x,
+			Car.y + 100.0f,
+			Car.z
+		), // camera lookat point (center)
+		glm::vec3(0.0f, 1.0f, 0.0f) // where is up
 	);
 
+	/*std::cout << Car.linear_speed << Car.angular_speed << std::endl;*/
+	
     glm::mat4 P = glm::perspective(
 		(50.0f*PI) / 180.0f, // FoV
 		aspectRatio, // window (width/height)
-		0.2f, // near clipping plane
-		50000.0f // far clipping plane
+		100.0f, // near clipping plane
+		500000.0f // far clipping plane
 	);
 
-	//Car.M = glm::mat4(1.0f);
-	/*Car.M = glm::rotate(Car.M, angle_y, glm::vec3(1.0f, 0.0f, 0.0f));
-	Car.M = glm::rotate(Car.M, angle_x, glm::vec3(0.0f, 1.0f, 0.0f));*/
-	/*Car.M = glm::translate(Car.M, glm::vec3(0.0f, -100.0f, 0.0f));*/
+	sp->use();//Aktywacja programu cieniującego
+
+	//LowPolyCar.drawModel(P, V);
 	Car.drawModel(P, V);
 
-	/*variable_pos = glm::mat4(1.0f);
-	variable_pos = glm::rotate(variable_pos, angle_y, glm::vec3(1.0f, 0.0f, 0.0f));
-	variable_pos = glm::rotate(variable_pos, angle_x, glm::vec3(0.0f, 1.0f, 0.0f));
+	glm::mat4 M_skybox = glm::mat4(1.0f);
+	M_skybox = glm::scale(M_skybox, glm::vec3(1000.0f, 1000.0f, 1000.0f));
+	Sphere.drawModel(P, V, M_skybox);
 
-	LowPolyCar.drawModel(P, V, variable_pos);*/
+	glm::mat4 M_grass = glm::mat4(1.0f);
+	M_grass = glm::scale(M_grass, glm::vec3(25000.0f, 1.0f, 25000.0f));
+	Grass.drawModel(P, V, M_grass);
 
-    glfwSwapBuffers(window); //Przerzuć tylny bufor na przedni
+	glm::mat4 M_track = glm::mat4(1.0f);
+	M_track = glm::scale(M_track, glm::vec3(100.0f, 1.0f, 100.0f));
+	M_track = glm::rotate(M_track, PI / 2, glm::vec3(1.0f, 0.0f, 0.0f));
+	Track.drawModel(P, V, M_track);
+
+    glfwSwapBuffers(window); // swap back buffer to front
 }
 
 
 int main(void) {
-	GLFWwindow* window; //Wskaźnik na obiekt reprezentujący okno
+	GLFWwindow* window;
 
-	glfwSetErrorCallback(error_callback);//Zarejestruj procedurę obsługi błędów
+	glfwSetErrorCallback(error_callback); // init error callback
 	if (!glfwInit()) { //Zainicjuj bibliotekę GLFW
 		fprintf(stderr, "Nie można zainicjować GLFW.\n");
 		exit(EXIT_FAILURE);
 	}
-	window = glfwCreateWindow(500, 500, "3D Racing game", NULL, NULL);  //Utwórz okno 500x500 o tytule "OpenGL" i kontekst OpenGL.
+	window = glfwCreateWindow(500, 500, "3D Racing game", NULL, NULL);  // create window
 	if (!window) //Jeżeli okna nie udało się utworzyć, to zamknij program
 	{
 		fprintf(stderr, "Nie można utworzyć okna.\n");
@@ -149,25 +168,19 @@ int main(void) {
 	}
 	glfwMakeContextCurrent(window); //Od tego momentu kontekst okna staje się aktywny i polecenia OpenGL będą dotyczyć właśnie jego.
 	glfwSwapInterval(1); //Czekaj na 1 powrót plamki przed pokazaniem ukrytego bufora
-	if (glewInit() != GLEW_OK) { //Zainicjuj bibliotekę GLEW
-		fprintf(stderr, "Nie można zainicjować GLEW.\n");
+	if (glewInit() != GLEW_OK) {
+		fprintf(stderr, "Can't init GLEW.\n");
 		exit(EXIT_FAILURE);
 	}
-	initOpenGLProgram(window); //Operacje inicjujące
+	initOpenGLProgram(window);
 	glfwMaximizeWindow(window);
 
-
-	//Główna pętla
-	float angle_x = 0; //Aktualny kąt obrotu obiektu
-	float angle_y = 0; //Aktualny kąt obrotu obiektu
-	glfwSetTime(0); //Zeruj timer
-	while (!glfwWindowShouldClose(window)) { //Tak długo jak okno nie powinno zostać zamknięte
-        angle_x += speed_x * glfwGetTime(); //Zwiększ/zmniejsz kąt obrotu na podstawie prędkości i czasu jaki upłynał od poprzedniej klatki
-        angle_y += speed_y * glfwGetTime(); //Zwiększ/zmniejsz kąt obrotu na podstawie prędkości i czasu jaki upłynał od poprzedniej klatki
-		Car.performMovement(window);
-		glfwSetTime(0); //Zeruj timer
-		drawScene(window, angle_x, angle_y); //Wykonaj procedurę rysującą
-		glfwPollEvents(); //Wykonaj procedury callback w zalezności od zdarzeń jakie zaszły.
+	glfwSetTime(0); // timer reset
+	while (!glfwWindowShouldClose(window)) {
+		Car.readInput(window);
+		glfwSetTime(0);
+		drawScene(window);
+		glfwPollEvents(); // Wykonaj procedury callback w zalezności od zdarzeń jakie zaszły.
 	}
 
 	freeOpenGLProgram(window);

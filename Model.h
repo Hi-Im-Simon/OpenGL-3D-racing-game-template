@@ -16,7 +16,6 @@
 #include <assimp/postprocess.h>
 
 #include "lodepng.h"
-#include "shaderprogram.h"
 
 
 ShaderProgram* sp;
@@ -31,16 +30,17 @@ public:
 	GLuint tex;
 	float angular_speed = 0.0f;
 	float linear_speed = 0.0f;
+	float x, y, z;
+	float angular_displacement;
 
 	Model() {}
-	Model(std::string filename) {
-		loadModel(filename);
+	Model(std::string filename, unsigned int repeat_factor = 1) {
+		loadModel(filename, repeat_factor);
 	}
 
-	inline void loadModel(std::string filename) {
+	inline void loadModel(std::string filename, unsigned int repeat_factor) {
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals);
-		Model model;
 
 		std::cout << importer.GetErrorString() << std::endl;
 
@@ -53,8 +53,11 @@ public:
 			norms.push_back(glm::vec4(normal.x, normal.y, normal.z, 0));
 
 			aiVector3D texCoord = mesh->mTextureCoords[0][i];
+			if (repeat_factor != 1) {
+				texCoord.x *= repeat_factor;
+				texCoord.y *= repeat_factor;
+			}
 			texCoords.push_back(glm::vec2(texCoord.x, texCoord.y));
-
 		}
 
 		for (int i = 0; i < mesh->mNumFaces; i++) {
@@ -66,28 +69,24 @@ public:
 		}
 	}
 
-	void performMovement(GLFWwindow* window) {
+	void readInput(GLFWwindow* window) {
 		if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) linear_speed += 0.02;
 		else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) linear_speed -= 0.02;
 		else linear_speed *= 0.99;
 
-		if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) angular_speed = 0.01 * (linear_speed * 2 / 10);
-		else if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) angular_speed = -0.01 * (linear_speed * 2 / 10);
+		if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) angular_speed = 0.01 * (linear_speed / 10);
+		else if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) angular_speed = -0.01 * (linear_speed / 10);
 		else angular_speed = 0;
-
-		std::cout << linear_speed << std::endl;
 	}
 
 	void readTexture(std::string filename) {
 		glActiveTexture(GL_TEXTURE0);
 
-		//Wczytanie do pamięci komputera
-		std::vector<unsigned char> image;   //Alokuj wektor do wczytania obrazka
-		unsigned width, height;   //Zmienne do których wczytamy wymiary obrazka
-		//Wczytaj obrazek
-		unsigned error = lodepng::decode(image, width, height, filename);
+		std::vector<unsigned char> image;   // allocate image vector
+		unsigned width, height;
+		unsigned error = lodepng::decode(image, width, height, filename); // load image
 
-		//Import do pamięci karty graficznej
+		// import to graph card memory
 		glGenTextures(1, &tex); //Zainicjuj jeden uchwyt
 		glBindTexture(GL_TEXTURE_2D, tex); //Uaktywnij uchwyt
 		//Wczytaj obrazek do pamięci KG skojarzonej z uchwytem
@@ -96,13 +95,19 @@ public:
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D,
+			GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f);
+
 	}
 
-	void drawModel(glm::mat4 P, glm::mat4 V) {
-		sp->use();//Aktywacja programu cieniującego
-	//Przeslij parametry programu cieniującego do karty graficznej
-		M = glm::rotate(M, angular_speed, glm::vec3(0.0f, 1.0f, 0.0f));
-		M = glm::translate(M, glm::vec3(-2.0f * linear_speed, 0.0f, 0.0f));
+	void drawModel(glm::mat4 P, glm::mat4 V, glm::mat4 M = glm::mat4(1.0f)) {
+		angular_displacement += angular_speed;
+		x += -1 * linear_speed * glm::cos(angular_displacement);
+		z += linear_speed * glm::sin(angular_displacement);
+
+		M = glm::translate(M, glm::vec3(x, y, z));
+		M = glm::rotate(M, angular_displacement, glm::vec3(0.0f, 1.0f, 0.0f));
+
 		glUniformMatrix4fv(sp->u("P"), 1, false, glm::value_ptr(P));
 		glUniformMatrix4fv(sp->u("V"), 1, false, glm::value_ptr(V));
 		glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M));

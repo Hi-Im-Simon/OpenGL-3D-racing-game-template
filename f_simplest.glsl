@@ -12,7 +12,6 @@ in vec4 v;
 in vec2 iTexCoord0;
 
 void main(void) {
-
 	//Znormalizowane interpolowane wektory
 	vec4 ml = normalize(l);
 	vec4 mn = normalize(n);
@@ -26,6 +25,6 @@ void main(void) {
 
 	//Obliczenie modelu oświetlenia
 	float nl = clamp(dot(mn, ml), 0, 1);
-	float rv = pow(clamp(dot(mr, mv), 0, 1),25);
+	float rv = pow(clamp(dot(mr, mv), 0, 1), 1);
 	pixelColor= vec4(kd.rgb * nl, kd.a) + vec4(ks.rgb*rv, 0);
 }

@@ -73,8 +73,8 @@ public:
 		else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) linear_speed -= 0.02;
 		else linear_speed *= 0.99;
 
-		if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) angular_speed = 0.01 * (linear_speed * 2 / 10);
-		else if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) angular_speed = -0.01 * (linear_speed * 2 / 10);
+		if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) angular_speed = 0.01 * (linear_speed / 10);
+		else if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) angular_speed = -0.01 * (linear_speed / 10);
 		else angular_speed = 0;
 
 		/*std::cout << linear_speed << std::endl;*/
@@ -102,20 +102,14 @@ public:
 
 	void drawModel(glm::mat4 P, glm::mat4 V) {
 		sp->use();//Aktywacja programu cieniującego
-	//Przeslij parametry programu cieniującego do karty graficznej
 		M = glm::mat4(1.0f);
 
 		angular_displacement += angular_speed;
 		x += -1 * linear_speed * glm::cos(angular_displacement);
 		z += linear_speed * glm::sin(angular_displacement);
 
-		std::cout << x << z << std::endl;
-
 		M = glm::translate(M, glm::vec3(x, y, z));
 		M = glm::rotate(M, angular_displacement, glm::vec3(0.0f, 1.0f, 0.0f));
-
-		/*M = glm::rotate(M, angular_speed, glm::vec3(0.0f, 1.0f, 0.0f));
-		M = glm::translate(M, glm::vec3(-2.0f * linear_speed, 0.0f, 0.0f));*/
 
 		glUniformMatrix4fv(sp->u("P"), 1, false, glm::value_ptr(P));
 		glUniformMatrix4fv(sp->u("V"), 1, false, glm::value_ptr(V));

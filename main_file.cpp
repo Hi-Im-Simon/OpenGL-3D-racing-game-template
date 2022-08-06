@@ -101,24 +101,21 @@ void freeOpenGLProgram(GLFWwindow* window) {
 
 
 //Procedura rysująca zawartość sceny
-void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
+void drawScene(GLFWwindow* window) {
 	//************Tutaj umieszczaj kod rysujący obraz******************l
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear buffer
 
-
 	V = glm::lookAt(
-		glm::vec3(Car.x+1, Car.y, Car.z), // camera position (eye)
+		glm::vec3(
+			Car.x + (750.0f * glm::cos(Car.angular_displacement)),
+			Car.y + 250.0f,
+			Car.z - (750.0f * glm::sin(Car.angular_displacement))
+		), // camera position (eye)
 		glm::vec3(Car.x, Car.y, Car.z), // camera lookat point (center)
 		glm::vec3(0.0f, 1.0f, 0.0f) // where is up
 	);
-	
 
 	/*std::cout << Car.linear_speed << Car.angular_speed << std::endl;*/
-	
-	/*V = glm::translate(V, glm::vec3(2.0f * Car.linear_speed, 0.0f, 0.0f)); */
-
-	V = glm::rotate(V, -Car.angular_displacement, glm::vec3(0.0f, 1.0f, 0.0f));
-	V = glm::translate(V, glm::vec3(-750.0f, -250.0f, 0.0f));
 	
     glm::mat4 P = glm::perspective(
 		(50.0f*PI) / 180.0f, // FoV
@@ -126,6 +123,7 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 		0.2f, // near clipping plane
 		50000.0f // far clipping plane
 	);
+
 	LowPolyCar.drawModel(P, V);
 	Car.drawModel(P, V);
 
@@ -136,12 +134,12 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 int main(void) {
 	GLFWwindow* window; //Wskaźnik na obiekt reprezentujący okno
 
-	glfwSetErrorCallback(error_callback);//Zarejestruj procedurę obsługi błędów
+	glfwSetErrorCallback(error_callback);// init error callback
 	if (!glfwInit()) { //Zainicjuj bibliotekę GLFW
 		fprintf(stderr, "Nie można zainicjować GLFW.\n");
 		exit(EXIT_FAILURE);
 	}
-	window = glfwCreateWindow(500, 500, "3D Racing game", NULL, NULL);  //Utwórz okno 500x500 o tytule "OpenGL" i kontekst OpenGL.
+	window = glfwCreateWindow(500, 500, "3D Racing game", NULL, NULL);  // create window
 	if (!window) //Jeżeli okna nie udało się utworzyć, to zamknij program
 	{
 		fprintf(stderr, "Nie można utworzyć okna.\n");
@@ -159,15 +157,11 @@ int main(void) {
 
 
 	//Główna pętla
-	float angle_x = 0; //Aktualny kąt obrotu obiektu
-	float angle_y = 0; //Aktualny kąt obrotu obiektu
 	glfwSetTime(0); //Zeruj timer
 	while (!glfwWindowShouldClose(window)) { //Tak długo jak okno nie powinno zostać zamknięte
-        angle_x += speed_x * glfwGetTime(); //Zwiększ/zmniejsz kąt obrotu na podstawie prędkości i czasu jaki upłynał od poprzedniej klatki
-        angle_y += speed_y * glfwGetTime(); //Zwiększ/zmniejsz kąt obrotu na podstawie prędkości i czasu jaki upłynał od poprzedniej klatki
 		Car.performMovement(window);
 		glfwSetTime(0); //Zeruj timer
-		drawScene(window, angle_x, angle_y); //Wykonaj procedurę rysującą
+		drawScene(window); //Wykonaj procedurę rysującą
 		glfwPollEvents(); //Wykonaj procedury callback w zalezności od zdarzeń jakie zaszły.
 	}
 

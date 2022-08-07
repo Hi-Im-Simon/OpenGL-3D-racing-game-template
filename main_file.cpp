@@ -44,9 +44,13 @@ Model Sphere("Models/Sphere.fbx");
 Model Grass("Models/Grass.fbx", 200);
 Model Track("Models/Track.fbx", 50);
 
+glm::mat4 M_Skybox = glm::mat4(1.0f);
+glm::mat4 M_Grass = glm::mat4(1.0f);
+glm::mat4 M_Track = glm::mat4(1.0f);
 
 
-float aspectRatio=1;
+float aspect_ratio = 1;
+int camera_control = 1;
 
 
 //Procedura obsługi błędów
@@ -56,23 +60,17 @@ void error_callback(int error, const char* description) {
 
 
 void keyCallback(GLFWwindow* window,int key,int scancode,int action,int mods) {
-    /*if (action == GLFW_REPEAT) {
-        if (key == GLFW_KEY_LEFT) speed_x=-PI/2;
-        if (key == GLFW_KEY_RIGHT) speed_x=PI/2;
-		if (key == GLFW_KEY_UP) Car.linear_speed += 1;
-		else if (key == GLFW_KEY_DOWN) Car.linear_speed -= 1;
-    }*/
-    /*if (action==GLFW_RELEASE) {
-        if (key == GLFW_KEY_LEFT) speed_x=0;
-        if (key == GLFW_KEY_RIGHT) speed_x=0;
-        if (key == GLFW_KEY_UP) Car.linear_speed += 0;
-        if (key == GLFW_KEY_DOWN) Car.linear_speed += 0;
-    }*/
+    if (action == GLFW_PRESS) {
+        if (key == GLFW_KEY_DOWN) camera_control = -1;
+    }
+    if (action==GLFW_RELEASE) {
+        if (key == GLFW_KEY_DOWN) camera_control = 1;
+    }
 }
 
 void windowResizeCallback(GLFWwindow* window, int width, int height) {
     if (height == 0) return;
-    aspectRatio = (float)width / (float)height;
+    aspect_ratio = (float)width / (float)height;
     glViewport(0, 0, width, height);
 }
 
@@ -90,6 +88,11 @@ void initOpenGLProgram(GLFWwindow* window) {
 	Sphere.readTexture("Textures/Sphere.png");
 	Grass.readTexture("Textures/Grass.png");
 	Track.readTexture("Textures/Track.png");
+
+	M_Skybox = glm::scale(M_Skybox, glm::vec3(1000.0f, 1000.0f, 1000.0f));
+	M_Grass = glm::scale(M_Grass, glm::vec3(25000.0f, 1.0f, 25000.0f));
+	M_Track = glm::scale(M_Track, glm::vec3(100.0f, 1.0f, 100.0f));
+	M_Track = glm::rotate(M_Track, PI / 2, glm::vec3(1.0f, 0.0f, 0.0f));
 }
 
 
@@ -108,9 +111,9 @@ void drawScene(GLFWwindow* window) {
 
 	glm::mat4 V = glm::lookAt(
 		glm::vec3(
-			Car.x + (450.0f * glm::cos(Car.angular_displacement)),
+			Car.x + (450.0f * glm::cos(Car.angular_displacement) * camera_control),
 			Car.y + 150.0f,
-			Car.z - (450.0f * glm::sin(Car.angular_displacement))
+			Car.z - (450.0f * glm::sin(Car.angular_displacement) * camera_control)
 		), // camera position (eye)
 		glm::vec3(
 			Car.x,
@@ -124,7 +127,7 @@ void drawScene(GLFWwindow* window) {
 	
     glm::mat4 P = glm::perspective(
 		(50.0f*PI) / 180.0f, // FoV
-		aspectRatio, // window (width/height)
+		aspect_ratio, // window (width/height)
 		100.0f, // near clipping plane
 		500000.0f // far clipping plane
 	);
@@ -134,18 +137,10 @@ void drawScene(GLFWwindow* window) {
 	//LowPolyCar.drawModel(P, V);
 	Car.drawModel(P, V);
 
-	glm::mat4 M_skybox = glm::mat4(1.0f);
-	M_skybox = glm::scale(M_skybox, glm::vec3(1000.0f, 1000.0f, 1000.0f));
-	Sphere.drawModel(P, V, M_skybox);
-
-	glm::mat4 M_grass = glm::mat4(1.0f);
-	M_grass = glm::scale(M_grass, glm::vec3(25000.0f, 1.0f, 25000.0f));
-	Grass.drawModel(P, V, M_grass);
-
-	glm::mat4 M_track = glm::mat4(1.0f);
-	M_track = glm::scale(M_track, glm::vec3(100.0f, 1.0f, 100.0f));
-	M_track = glm::rotate(M_track, PI / 2, glm::vec3(1.0f, 0.0f, 0.0f));
-	Track.drawModel(P, V, M_track);
+	
+	Sphere.drawModel(P, V, M_Skybox);
+	Grass.drawModel(P, V, M_Grass);
+	Track.drawModel(P, V, M_Track);
 
     glfwSwapBuffers(window); // swap back buffer to front
 }

@@ -33,16 +33,17 @@ public:
 	float x, y, z;
 	float angular_displacement;
 
-	Model() {}
 	Model(std::string filename, unsigned int repeat_factor = 1) {
-		loadModel(filename, repeat_factor);
+		readModel(filename, repeat_factor);
 	}
 
-	inline void loadModel(std::string filename, unsigned int repeat_factor) {
+	inline void readModel(std::string filename, unsigned int repeat_factor) {
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(filename, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals);
 
-		std::cout << importer.GetErrorString() << std::endl;
+		if (strlen(importer.GetErrorString()) > 0) { // print errors if there are any
+			std::cout << importer.GetErrorString() << std::endl;
+		}
 
 		aiMesh* mesh = scene->mMeshes[0];
 		for (int i = 0; i < mesh->mNumVertices; i++) {
@@ -70,12 +71,12 @@ public:
 	}
 
 	void readInput(GLFWwindow* window) {
-		if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) linear_speed += 0.02;
-		else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) linear_speed -= 0.02;
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) linear_speed += 0.02;
+		else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) linear_speed -= 0.02;
 		else linear_speed *= 0.99;
 
-		if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) angular_speed = 0.01 * (linear_speed / 10);
-		else if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) angular_speed = -0.01 * (linear_speed / 10);
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) angular_speed = 0.01 * (linear_speed / 10);
+		else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) angular_speed = -0.01 * (linear_speed / 10);
 		else angular_speed = 0;
 	}
 
@@ -95,12 +96,10 @@ public:
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameterf(GL_TEXTURE_2D,
-			GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f);
-
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f);
 	}
 
-	void drawModel(glm::mat4 P, glm::mat4 V, glm::mat4 M = glm::mat4(1.0f)) {
+	void drawModel(glm::mat4 P, glm::mat4 V, glm::mat4 M = glm::mat4(1.0f), bool reflection = 1) {
 		angular_displacement += angular_speed;
 		x += -1 * linear_speed * glm::cos(angular_displacement);
 		z += linear_speed * glm::sin(angular_displacement);

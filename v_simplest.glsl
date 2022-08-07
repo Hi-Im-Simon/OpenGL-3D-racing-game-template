@@ -7,7 +7,6 @@ uniform mat4 M;
 
 //Atrybuty
 in vec4 vertex; //wspolrzedne wierzcholka w przestrzeni modelu
-//in vec4 color; //kolor związany z wierzchołkiem
 in vec4 normal; //wektor normalny w przestrzeni modelu
 in vec2 texCoord0;
 
@@ -20,13 +19,11 @@ out vec2 iTexCoord0;
 
 
 void main(void) {
-    vec4 lp = vec4(0, 20000, 0, 1); //przestrzeń świata
+    vec4 lp = vec4(0, 10000, 0, 1); //przestrzeń świata
     l = normalize(V * lp - V*M*vertex); //wektor do światła w przestrzeni oka
     v = normalize(vec4(0, 0, 0, 1) - V * M * vertex); //wektor do obserwatora w przestrzeni oka
     n = normalize(V * M * normal); //wektor normalny w przestrzeni oka
     iTexCoord0 = texCoord0;
-    
-    //ic = color;
     
     gl_Position=P*V*M*vertex;
 }

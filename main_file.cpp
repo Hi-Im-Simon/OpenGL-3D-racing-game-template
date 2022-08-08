@@ -43,7 +43,14 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include "Car.h"
 #pragma comment(lib, "winmm.lib")
 
-Car Player("Models/Formula.fbx", true);
+Car Player("Models/Formula.fbx");
+//std::vector<glm::vec3> path{
+//	glm::vec3(1000, 0, 1000),
+//	glm::vec3(1000, 0, 0),
+//	glm::vec3(0, 0, 0),
+//	glm::vec3(0, 0, 1000)
+//	};
+//Car Ai0("Models/Formula.fbx", path);
 Model Sphere("Models/Sphere.fbx");
 Model Grass("Models/Grass.fbx", 200);
 Model Track("Models/Track.fbx", 50);
@@ -90,6 +97,7 @@ void initOpenGLProgram(GLFWwindow* window) {
 
 	sp = new ShaderProgram("v_simplest.glsl", NULL, "f_simplest.glsl");
 	Player.readTexture("Textures/Formula.png");
+	//Ai0.readTexture("Textures/Formula.png");
 	Sphere.readTexture("Textures/Sphere.png");
 	Grass.readTexture("Textures/Grass.png");
 	Track.readTexture("Textures/Track.png");

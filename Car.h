@@ -22,23 +22,70 @@ class Car : public Model {
 public:
 	float angular_speed = 0.0f;
 	float linear_speed = 0.0f;
+	float max_speed;
 	float x, y, z;
 	float angular_displacement;
 	bool is_player;
+	/*std::vector<glm::vec3> path;
+	unsigned int path_progression;*/
 
-	Car(std::string filename, bool is_player = false, unsigned int repeat_factor = 1) {
-		this->is_player = is_player;
-		Model::readModel(filename, repeat_factor);
+	Car(std::string filename, float max_speed = 40.0) {
+		this->is_player = true;
+		this->max_speed = max_speed;
+		Model::readModel(filename, 1);
 	}
 
-	void readInput(GLFWwindow* window) {
-		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) linear_speed += 0.02;
-		else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) linear_speed -= 0.02;
-		else linear_speed *= 0.99;
+	/*Car(std::string filename, const std::vector<glm::vec3>& path) {
+		this->is_player = false;
+		this->path = path;
+		this->x = path[0].x;
+		this->y = path[0].y;
+		this->z = path[0].z;
+		Model::readModel(filename, 1);
+	}*/
 
-		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) angular_speed = 0.01 * (linear_speed / 10);
-		else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) angular_speed = -0.01 * (linear_speed / 10);
+	void readInput(GLFWwindow* window) {
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+			if (linear_speed >= 0) {
+				if (linear_speed == 0) linear_speed = 0.02f;
+				linear_speed = std::min((linear_speed + std::min((float)pow(linear_speed / max_speed, 1.05), 0.02f)), max_speed);
+			}
+			else {
+				linear_speed = std::min(linear_speed + 0.08, 0.0);
+			}
+		}
+		else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) 
+			if (linear_speed <= 0) {
+				if (linear_speed == 0) linear_speed = -0.02f;
+				linear_speed = std::max((linear_speed - std::min((float)pow(linear_speed / -max_speed, 1.05), 0.02f)), -max_speed / 3);
+			}
+			else {
+				linear_speed = std::max(linear_speed - 0.08, 0.0);
+			}
+		else linear_speed *= 0.9995;
+
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+			linear_speed *= 0.9993;
+			if (linear_speed > 2.0 || linear_speed < -2.0) {
+				angular_speed = std::min(0.2 / linear_speed, 0.005);
+			}
+			else {
+				angular_speed = linear_speed * 0.005 / 2.0;
+			}
+		}
+		else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+			linear_speed *= 0.9993;
+			if (linear_speed > 2.0 || linear_speed < -2.0) {
+				angular_speed = -std::min(0.2 / linear_speed, 0.005);
+			}
+			else {
+				angular_speed = -linear_speed * 0.005 / 2.0;
+			}
+		}
 		else angular_speed = 0;
+		
+
+		std::cout << linear_speed << std::endl;
 	}
 
 	void drawModel(glm::mat4 P, glm::mat4 V, glm::mat4 M = glm::mat4(1.0f), float reflectMin = 0.0f, float reflectMax = 1.0f) {

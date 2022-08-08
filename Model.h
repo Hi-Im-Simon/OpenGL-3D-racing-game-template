@@ -21,17 +21,15 @@
 ShaderProgram* sp;
 
 class Model {
-public:
+protected:
 	std::vector<glm::vec4> verts;
 	std::vector<glm::vec4> norms;
 	std::vector<glm::vec2> texCoords;
 	std::vector<unsigned int> indices;
-	glm::mat4 M = glm::mat4(1.0f);
-	GLuint tex;
-	float angular_speed = 0.0f;
-	float linear_speed = 0.0f;
-	float x, y, z;
-	float angular_displacement;
+	GLuint tex = 0;
+
+public:
+	Model() {}
 
 	Model(std::string filename, unsigned int repeat_factor = 1) {
 		readModel(filename, repeat_factor);
@@ -70,16 +68,6 @@ public:
 		}
 	}
 
-	void readInput(GLFWwindow* window) {
-		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) linear_speed += 0.02;
-		else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) linear_speed -= 0.02;
-		else linear_speed *= 0.99;
-
-		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) angular_speed = 0.01 * (linear_speed / 10);
-		else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) angular_speed = -0.01 * (linear_speed / 10);
-		else angular_speed = 0;
-	}
-
 	void readTexture(std::string filename) {
 		glActiveTexture(GL_TEXTURE0);
 
@@ -99,17 +87,12 @@ public:
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f);
 	}
 
-	void drawModel(glm::mat4 P, glm::mat4 V, glm::mat4 M = glm::mat4(1.0f), bool reflection = 1) {
-		angular_displacement += angular_speed;
-		x += -1 * linear_speed * glm::cos(angular_displacement);
-		z += linear_speed * glm::sin(angular_displacement);
-
-		M = glm::translate(M, glm::vec3(x, y, z));
-		M = glm::rotate(M, angular_displacement, glm::vec3(0.0f, 1.0f, 0.0f));
-
+	void drawModel(glm::mat4 P, glm::mat4 V, glm::mat4 M = glm::mat4(1.0f), float reflectMin = 0.0f, float reflectMax = 1.0f) {
 		glUniformMatrix4fv(sp->u("P"), 1, false, glm::value_ptr(P));
 		glUniformMatrix4fv(sp->u("V"), 1, false, glm::value_ptr(V));
 		glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M));
+		glUniform1f(sp->u("reflectMin"), reflectMin);
+		glUniform1f(sp->u("reflectMax"), reflectMax);
 
 		glEnableVertexAttribArray(sp->a("vertex"));  //Włącz przesyłanie danych do atrybutu vertex
 		glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, verts.data()); //Wskaż tablicę z danymi dla atrybutu vertex

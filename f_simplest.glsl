@@ -9,6 +9,8 @@ in vec4 n;
 in vec4 l;
 in vec4 v;
 in vec2 iTexCoord0;
+in float iReflectMin;
+in float iReflectMax;
 
 void main(void) {
 	//Znormalizowane interpolowane wektory
@@ -19,11 +21,11 @@ void main(void) {
 	vec4 mr = reflect(-ml, mn);
 
 	//Parametry powierzchni
-	vec4 kd = texture(textureMap0, iTexCoord0); 
+	vec4 kd = texture(textureMap0, iTexCoord0);
 	vec4 ks = texture(textureMap1, iTexCoord0);
 
 	//Obliczenie modelu oświetlenia
 	float nl = clamp(dot(mn, ml), 0, 1);
-	float rv = pow(clamp(dot(mr, mv), 1, 1), 1);
+	float rv = pow(clamp(dot(mr, mv), iReflectMin, iReflectMax), 1);
 	pixelColor= vec4(kd.rgb * nl, kd.a) + vec4(ks.rgb * rv, 0);
 }

@@ -24,6 +24,9 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include <stdlib.h>
 #include <iostream>
 #include <stdio.h>
+#include <windows.h>
+#include <mmsystem.h>
+#include <mciapi.h>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -37,12 +40,14 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include "constants.h"
 #include "shaderprogram.h"
 #include "Model.h"
+#include "Car.h"
+#pragma comment(lib, "winmm.lib")
 
-Model Car("Models/Formula.fbx");
-Model LowPolyCar("Models/Formula.fbx");
+Car Player("Models/Formula.fbx", true);
 Model Sphere("Models/Sphere.fbx");
 Model Grass("Models/Grass.fbx", 200);
 Model Track("Models/Track.fbx", 50);
+Model Plant("Models/Plant.fbx", 5);
 
 glm::mat4 M_Skybox = glm::mat4(1.0f);
 glm::mat4 M_Grass = glm::mat4(1.0f);
@@ -84,15 +89,19 @@ void initOpenGLProgram(GLFWwindow* window) {
 	glfwSetKeyCallback(window,keyCallback);
 
 	sp = new ShaderProgram("v_simplest.glsl", NULL, "f_simplest.glsl");
-	Car.readTexture("Textures/Formula.png");
+	Player.readTexture("Textures/Formula.png");
 	Sphere.readTexture("Textures/Sphere.png");
 	Grass.readTexture("Textures/Grass.png");
 	Track.readTexture("Textures/Track.png");
+	Plant.readTexture("Textures/Grass.png");
 
 	M_Skybox = glm::scale(M_Skybox, glm::vec3(1000.0f, 1000.0f, 1000.0f));
 	M_Grass = glm::scale(M_Grass, glm::vec3(25000.0f, 1.0f, 25000.0f));
 	M_Track = glm::scale(M_Track, glm::vec3(100.0f, 1.0f, 100.0f));
-	M_Track = glm::rotate(M_Track, PI / 2, glm::vec3(1.0f, 0.0f, 0.0f));
+	M_Track = glm::rotate(M_Track, -PI / 2, glm::vec3(1.0f, 0.0f, 0.0f));
+
+	mciSendString(TEXT("open \"Sounds/Music.mp3\" type mpegvideo alias mp3"), NULL, 0, NULL);
+	mciSendString(TEXT("play mp3 repeat"), NULL, 0, NULL);
 }
 
 
@@ -111,14 +120,14 @@ void drawScene(GLFWwindow* window) {
 
 	glm::mat4 V = glm::lookAt(
 		glm::vec3(
-			Car.x + (450.0f * glm::cos(Car.angular_displacement) * camera_control),
-			Car.y + 150.0f,
-			Car.z - (450.0f * glm::sin(Car.angular_displacement) * camera_control)
+			Player.x + (450.0f * glm::cos(Player.angular_displacement) * camera_control),
+			Player.y + 150.0f,
+			Player.z - (450.0f * glm::sin(Player.angular_displacement) * camera_control)
 		), // camera position (eye)
 		glm::vec3(
-			Car.x,
-			Car.y + 100.0f,
-			Car.z
+			Player.x,
+			Player.y + 100.0f,
+			Player.z
 		), // camera lookat point (center)
 		glm::vec3(0.0f, 1.0f, 0.0f) // where is up
 	);
@@ -134,13 +143,14 @@ void drawScene(GLFWwindow* window) {
 
 	sp->use();//Aktywacja programu cieniującego
 
-	//LowPolyCar.drawModel(P, V);
-	Car.drawModel(P, V);
+	Player.drawModel(P, V);
 
+	float reflectPow = 0.4;
 	
-	Sphere.drawModel(P, V, M_Skybox);
-	Grass.drawModel(P, V, M_Grass);
-	Track.drawModel(P, V, M_Track);
+	Sphere.drawModel(P, V, M_Skybox, 1.0, 1.0);
+	Grass.drawModel(P, V, M_Grass, reflectPow, reflectPow);
+	Track.drawModel(P, V, M_Track, reflectPow, reflectPow);
+	Plant.drawModel(P, V, glm::mat4(1.0f), 0.0, 0.0);
 
     glfwSwapBuffers(window); // swap back buffer to front
 }
@@ -172,7 +182,7 @@ int main(void) {
 
 	glfwSetTime(0); // timer reset
 	while (!glfwWindowShouldClose(window)) {
-		Car.readInput(window);
+		Player.readInput(window);
 		glfwSetTime(0);
 		drawScene(window);
 		glfwPollEvents(); // Wykonaj procedury callback w zalezności od zdarzeń jakie zaszły.

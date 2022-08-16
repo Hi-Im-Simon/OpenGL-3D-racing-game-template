@@ -22,6 +22,7 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #define GLM_FORCE_SWIZZLE
 
 #include <stdlib.h>
+#include <map>
 #include <iostream>
 #include <stdio.h>
 #include <windows.h>
@@ -56,10 +57,16 @@ Model Grass("Models/Grass.fbx", 200);
 Model Track("Models/Track.fbx", 50);
 Model Plant("Models/Plant.fbx", 5);
 
+std::map<std::string, Model> Bands = {
+	{ "x0", Model("Models/Grass.fbx", -18000.0f, 0.0f, -5000.0f, 36000.0f, 100.0f, 1.0f) },
+	{ "x1", Model("Models/Grass.fbx", -18000.0f, 0.0f, 10000.0f, 36000.0f, 100.0f, 1.0f) },
+	{ "z0", Model("Models/Grass.fbx", -18000.0f, 0.0f, -5000.0f, 1.0f, 100.0f, 15000.0f) },
+	{ "z1", Model("Models/Grass.fbx", 18000.0f, 0.0f, -5000.0f, 1.0f, 100.0f, 15000.0f) }
+};
+
 glm::mat4 M_Skybox = glm::mat4(1.0f);
 glm::mat4 M_Grass = glm::mat4(1.0f);
 glm::mat4 M_Track = glm::mat4(1.0f);
-
 
 float aspect_ratio = 1;
 int camera_control = 1;
@@ -102,6 +109,10 @@ void initOpenGLProgram(GLFWwindow* window) {
 	Grass.readTexture("Textures/Grass.png");
 	Track.readTexture("Textures/Track.png");
 	Plant.readTexture("Textures/Grass.png");
+	for (auto it = Bands.begin(); it != Bands.end(); ++it) {
+		(it->second).readTexture("Textures/Grass.png");
+
+	}
 
 	M_Skybox = glm::scale(M_Skybox, glm::vec3(1000.0f, 1000.0f, 1000.0f));
 	M_Grass = glm::scale(M_Grass, glm::vec3(25000.0f, 1.0f, 25000.0f));
@@ -173,8 +184,7 @@ int main(void) {
 		exit(EXIT_FAILURE);
 	}
 	window = glfwCreateWindow(500, 500, "3D Racing game", NULL, NULL);  // create window
-	if (!window) //Jeżeli okna nie udało się utworzyć, to zamknij program
-	{
+	if (!window) {
 		fprintf(stderr, "Nie można utworzyć okna.\n");
 		glfwTerminate();
 		exit(EXIT_FAILURE);
@@ -191,6 +201,8 @@ int main(void) {
 	glfwSetTime(0); // timer reset
 	while (!glfwWindowShouldClose(window)) {
 		Player.readInput(window);
+		Player.checkCollision(Bands);
+
 		glfwSetTime(0);
 		drawScene(window);
 		glfwPollEvents(); // Wykonaj procedury callback w zalezności od zdarzeń jakie zaszły.

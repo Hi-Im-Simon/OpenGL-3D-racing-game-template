@@ -28,8 +28,22 @@ protected:
 	std::vector<unsigned int> indices;
 	GLuint tex = 0;
 
+
 public:
+	float x, y, z;
+	float size_x, size_y, size_z;
+
 	Model() {}
+
+	Model(std::string filename, float x, float y, float z, float size_x, float size_y, float size_z, unsigned int repeat_factor = 1) {
+		this->x = x;
+		this->y = y;
+		this->z = z;
+		this->size_x = size_x;
+		this->size_y = size_y;
+		this->size_z = size_z;
+		readModel(filename, repeat_factor);
+	}
 
 	Model(std::string filename, unsigned int repeat_factor = 1) {
 		readModel(filename, repeat_factor);

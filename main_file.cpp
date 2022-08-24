@@ -55,18 +55,30 @@ Car Player("Models/Formula.fbx");
 Model Sphere("Models/Sphere.fbx");
 Model Grass("Models/Grass.fbx", 200);
 Model Track("Models/Track.fbx", 50);
-Model Plant("Models/Plant.fbx", 5);
+
+std::vector<Model> Trees = {
+	Model("Models/Plant.fbx", 5),
+};
 
 std::map<std::string, Model> Bands = {
-	{ "x0", Model("Models/Grass.fbx", -18000.0f, 0.0f, -5000.0f, 36000.0f, 100.0f, 1.0f) },
-	{ "x1", Model("Models/Grass.fbx", -18000.0f, 0.0f, 10000.0f, 36000.0f, 100.0f, 1.0f) },
-	{ "z0", Model("Models/Grass.fbx", -18000.0f, 0.0f, -5000.0f, 1.0f, 100.0f, 15000.0f) },
-	{ "z1", Model("Models/Grass.fbx", 18000.0f, 0.0f, -5000.0f, 1.0f, 100.0f, 15000.0f) }
+	{ "x0", Model("Models/Grass.fbx", 0.0f, 0.0f, -7500.0f, 36000.0f, 150.0f, 50.0f, 500) },
+	{ "x1", Model("Models/Grass.fbx", 0.0f, 0.0f, 7500.0f, 36000.0f, 150.0f, 50.0f, 500) },
+	{ "z0", Model("Models/Grass.fbx", -18000.0f, 0.0f, 0.0f, 50.0f, 150.0f, 15000.0f, 208) },
+	{ "z1", Model("Models/Grass.fbx", 18000.0f, 0.0f, 0.0f, 50.0f, 150.0f, 15000.0f, 208) }
 };
 
 glm::mat4 M_Skybox = glm::mat4(1.0f);
 glm::mat4 M_Grass = glm::mat4(1.0f);
 glm::mat4 M_Track = glm::mat4(1.0f);
+
+
+
+std::map<std::string, glm::mat4> Ms_Bands = {
+	{ "x0", glm::mat4(1.0f) },
+	{ "x1", glm::mat4(1.0f) },
+	{ "z0", glm::mat4(1.0f) },
+	{ "z1", glm::mat4(1.0f) }
+};
 
 float aspect_ratio = 1;
 int camera_control = 1;
@@ -108,16 +120,23 @@ void initOpenGLProgram(GLFWwindow* window) {
 	Sphere.readTexture("Textures/Sphere.png");
 	Grass.readTexture("Textures/Grass.png");
 	Track.readTexture("Textures/Track.png");
-	Plant.readTexture("Textures/Grass.png");
-	for (auto it = Bands.begin(); it != Bands.end(); ++it) {
-		(it->second).readTexture("Textures/Grass.png");
 
+	for (auto it = Trees.begin(); it != Trees.end(); ++it) {
+		it->readTexture("Textures/Grass.png");
+	}
+
+	for (auto it = Bands.begin(); it != Bands.end(); ++it) {
+		(it->second).readTexture("Textures/Band.png");
+		Ms_Bands[it->first] = glm::translate(Ms_Bands[it->first], glm::vec3(it->second.x, it->second.y, it->second.z));
+		Ms_Bands[it->first] = glm::scale(Ms_Bands[it->first], glm::vec3(it->second.size_x * 0.5, it->second.size_y, it->second.size_z * 0.5));
 	}
 
 	M_Skybox = glm::scale(M_Skybox, glm::vec3(1000.0f, 1000.0f, 1000.0f));
 	M_Grass = glm::scale(M_Grass, glm::vec3(25000.0f, 1.0f, 25000.0f));
 	M_Track = glm::scale(M_Track, glm::vec3(100.0f, 1.0f, 100.0f));
+	M_Track = glm::translate(M_Track, glm::vec3(0.0f, 0.0f, -25.0f));
 	M_Track = glm::rotate(M_Track, -PI / 2, glm::vec3(1.0f, 0.0f, 0.0f));
+	
 
 	mciSendString(TEXT("open \"Sounds/Music.mp3\" type mpegvideo alias mp3"), NULL, 0, NULL);
 	mciSendString(TEXT("play mp3 repeat"), NULL, 0, NULL);
@@ -169,7 +188,15 @@ void drawScene(GLFWwindow* window) {
 	Sphere.drawModel(P, V, M_Skybox, 1.0, 1.0);
 	Grass.drawModel(P, V, M_Grass, reflectPow, reflectPow);
 	Track.drawModel(P, V, M_Track, reflectPow, reflectPow);
-	Plant.drawModel(P, V, glm::mat4(1.0f), 0.0, 0.0);
+
+	for (auto it = Trees.begin(); it != Trees.end(); ++it) {
+		it->drawModel(P, V, glm::mat4(1.0f), 0.0, 0.0);
+	}
+	
+
+	for (auto it = Bands.begin(); it != Bands.end(); ++it) {
+		(it->second).drawModel(P, V, Ms_Bands[it->first], reflectPow, reflectPow);
+	}
 
     glfwSwapBuffers(window); // swap back buffer to front
 }

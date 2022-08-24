@@ -26,7 +26,6 @@ public:
 	float max_speed;
 	float angular_displacement;
 	bool is_player;
-	bool collision_reference = false;
 	/*std::vector<glm::vec3> path;
 	unsigned int path_progression;*/
 
@@ -98,10 +97,10 @@ public:
 
 	void checkCollision(std::map<std::string, Model> Bands) {
 		std::cout << x << " " << z << std::endl;
-		if ((z < Bands["x0"].z || z > Bands["x1"].z || x < Bands["z0"].x || x > Bands["z1"].x)) {
-			x = std::clamp(x, Bands["z0"].x, Bands["z1"].x);
-			z = std::clamp(z, Bands["x0"].z, Bands["x1"].z);
-			linear_speed *= -0.3;
+		if ((z < Bands["x0"].z + 100 || z > Bands["x1"].z - 100 || x < Bands["z0"].x + 100 || x > Bands["z1"].x - 100)) {
+			x = std::clamp(x, Bands["z0"].x + 100, Bands["z1"].x - 100);
+			z = std::clamp(z, Bands["x0"].z + 100, Bands["x1"].z - 100);
+			linear_speed *= -0.1;
 		}
 		
 	}

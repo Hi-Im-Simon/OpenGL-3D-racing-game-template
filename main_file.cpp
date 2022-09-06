@@ -61,10 +61,10 @@ std::vector<Model> Trees = {
 };
 
 std::map<std::string, Model> Bands = {
-	{ "x0", Model("Models/Grass.fbx", 0.0f, 0.0f, -7500.0f, 36000.0f, 150.0f, 50.0f, 500) },
-	{ "x1", Model("Models/Grass.fbx", 0.0f, 0.0f, 7500.0f, 36000.0f, 150.0f, 50.0f, 500) },
-	{ "z0", Model("Models/Grass.fbx", -18000.0f, 0.0f, 0.0f, 50.0f, 150.0f, 15000.0f, 208) },
-	{ "z1", Model("Models/Grass.fbx", 18000.0f, 0.0f, 0.0f, 50.0f, 150.0f, 15000.0f, 208) }
+	{ "x0", Model("Models/Grass.fbx", 0.0f, 0.0f, -7500.0f, 36000.0f, 150.0f, 5.0f, 500) },
+	{ "x1", Model("Models/Grass.fbx", 0.0f, 0.0f, 7500.0f, 36000.0f, 150.0f, 5.0f, 500) },
+	{ "z0", Model("Models/Grass.fbx", -18000.0f, 0.0f, 0.0f, 5.0f, 150.0f, 15000.0f, 208) },
+	{ "z1", Model("Models/Grass.fbx", 18000.0f, 0.0f, 0.0f, 5.0f, 150.0f, 15000.0f, 208) }
 };
 
 glm::mat4 M_Skybox = glm::mat4(1.0f);

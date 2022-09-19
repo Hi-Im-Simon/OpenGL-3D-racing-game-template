@@ -22,6 +22,7 @@
     <ClInclude Include="constants.h" />
     <ClInclude Include="Car.h" />
     <ClInclude Include="Model.h" />
+    <ClInclude Include="Plane.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="lodepng.h" />
     <ClInclude Include="myCube.h" />

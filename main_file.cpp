@@ -43,6 +43,7 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include "shaderprogram.h"
 #include "Model.h"
 #include "Car.h"
+#include "Plane.h"
 #pragma comment(lib, "winmm.lib")
 
 
@@ -52,7 +53,11 @@ Car Player("Models/Formula.fbx");
 Model Sphere("Models/Sphere.fbx");
 Model Grass("Models/Grass.fbx", 200);
 Model Track("Models/Track.fbx", 50);
-Model Plane("Models/Plane.fbx");
+
+std::vector<Plane> Planes = {
+	{ Plane("Models/Plane.fbx", 25000.0f, 5000.0f, 0.0059f) },
+	{ Plane("Models/Plane.fbx", 35000.0f, 4000.0f, -0.0078f) },
+};
 
 std::vector<Model> Trees = {};
 
@@ -77,9 +82,14 @@ std::vector<glm::mat4> Ms_Bands = {
 	{ glm::mat4(1.0f) }
 };
 
+std::vector<std::string> music = {
+	{ "Music.wav" },
+};
+
+int music_iter = 0;
+bool music_key_press = false;
 float aspect_ratio = 1;
 int camera_control = 1;
-float plane_rotation = 0.0f;
 
 
 //Procedura obsługi błędów
@@ -91,9 +101,15 @@ void error_callback(int error, const char* description) {
 void keyCallback(GLFWwindow* window,int key,int scancode,int action,int mods) {
     if (action == GLFW_PRESS) {
         if (key == GLFW_KEY_DOWN) camera_control = -1;
+		if (key == GLFW_KEY_M && !music_key_press) {
+			music_iter = (music_iter + 1) % music.size();
+			PlaySoundA(("Sounds/" + music[music_iter]).c_str(), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
+			music_key_press = true;
+		}
     }
     if (action==GLFW_RELEASE) {
         if (key == GLFW_KEY_DOWN) camera_control = 1;
+		if (key == GLFW_KEY_M) music_key_press = false;
     }
 }
 
@@ -135,7 +151,10 @@ void initOpenGLProgram(GLFWwindow* window) {
 	Sphere.readTexture("Textures/Sphere.png");
 	Grass.readTexture("Textures/Grass.png");
 	Track.readTexture("Textures/Track.png");
-	Plane.readTexture("Textures/Car1.png");
+
+	for (int i = 0; i < Planes.size(); i++) {
+		Planes[i].readTexture("Textures/Plane" + std::to_string(i + 1) + ".png");
+	}
 
 	for (int i = 0; i < Trees.size(); i++) {
 		Trees[i].readTexture("Textures/Tree.png");
@@ -156,16 +175,16 @@ void initOpenGLProgram(GLFWwindow* window) {
 	M_Track = glm::translate(M_Track, glm::vec3(0.0f, 0.0f, -25.0f));
 	M_Track = glm::rotate(M_Track, -PI / 2, glm::vec3(1.0f, 0.0f, 0.0f));
 
-	/*mciSendString(TEXT("open \"Sounds/Music.mp3\" type mpegvideo alias mp3"), NULL, 0, NULL);
-	mciSendString(TEXT("play mp3 repeat"), NULL, 0, NULL);*/
-	PlaySound(TEXT("Sounds/Music.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
+	PlaySoundA(("Sounds/" + music[music_iter++]).c_str(), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
 }
 
 
 //Zwolnienie zasobów zajętych przez program
 void freeOpenGLProgram(GLFWwindow* window) {
     //************Tutaj umieszczaj kod, który należy wykonać po zakończeniu pętli głównej************
-
+	std::cout << std::endl << "Thank you for playing!" << std::endl;
+	std::cout << "Programming: Szymon Stanislawski - github.com/Hi-Im-Simon" << std::endl;
+	std::cout << "Music: Mariusz Duszczak - https://www.youtube.com/channel/UCWVcDkZZsKus6dv2nNpIEmQ" << std::endl;
     delete sp;
 }
 
@@ -208,18 +227,9 @@ void drawScene(GLFWwindow* window) {
 	Grass.drawModel(P, V, M_Grass, reflectPow, reflectPow);
 	Track.drawModel(P, V, M_Track, reflectPow, reflectPow);
 
-	// move plane
-	M_Plane = glm::mat4(1.0f);
-	M_Plane = glm::translate(M_Plane, glm::vec3(25000.0f * cos(plane_rotation), 5000.0f, 25000.0f * sin(plane_rotation)));
-	M_Plane = glm::scale(M_Plane, glm::vec3(200.0f, 200.0f, 200.0f));
-	M_Plane = glm::rotate(M_Plane, PI / 2, glm::vec3(1.0f, 0.0f, 0.0f));
-	M_Plane = glm::rotate(M_Plane, (2*PI / 6.283f) * plane_rotation, glm::vec3(0.0f, 0.0f, 1.0f));
-
-	Plane.drawModel(P, V, M_Plane);
-	plane_rotation = plane_rotation + 0.005f;
-	if (plane_rotation >= 360.0f) plane_rotation -= 360.0f;
-
-	//std::cout << plane_rotation << std::endl;
+	for (int i = 0; i < Planes.size(); i++) {
+		Planes[i].drawModel(P, V);
+	}
 
 	for (int i = 0; i < Trees.size(); i++) {
 		Trees[i].drawModel(P, V, Ms_Trees[i], 0.0, 0.0);

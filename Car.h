@@ -27,23 +27,12 @@ public:
 	float max_speed;
 	float angular_displacement;
 	bool is_player;
-	/*std::vector<glm::vec3> path;
-	unsigned int path_progression;*/
 
-	Car(std::string filename, float max_speed = 80.0) {
+	Car(std::string filename, float max_speed = 160.0) {
 		this->is_player = true;
 		this->max_speed = max_speed;
 		Model::readModel(filename, 1);
 	}
-
-	/*Car(std::string filename, const std::vector<glm::vec3>& path) {
-		this->is_player = false;
-		this->path = path;
-		this->x = path[0].x;
-		this->y = path[0].y;
-		this->z = path[0].z;
-		Model::readModel(filename, 1);
-	}*/
 
 	void readInput(GLFWwindow* window) {
 		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
@@ -75,8 +64,8 @@ public:
 
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
 			linear_speed *= 0.999;
-			if (linear_speed > 2.0) {
-				angular_speed = std::min(0.2 * speed_change / linear_speed, 0.01);
+			if (linear_speed > 10.0) {
+				angular_speed = std::min(0.2 * speed_change / linear_speed, 0.02);
 			}
 			else {
 				angular_speed = linear_speed * 0.0025;
@@ -84,8 +73,8 @@ public:
 		}
 		else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
 			linear_speed *= 0.999;
-			if (linear_speed > 2.0) {
-				angular_speed = -std::min(0.2 * speed_change / linear_speed, 0.01);
+			if (linear_speed > 10.0) {
+				angular_speed = -std::min(0.2 * speed_change / linear_speed, 0.02);
 			}
 			else {
 				angular_speed = -linear_speed * 0.0025;

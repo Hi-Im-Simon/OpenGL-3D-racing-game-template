@@ -83,7 +83,7 @@ std::vector<glm::mat4> Ms_Bands = {
 };
 
 std::vector<std::string> music = {
-	{ "Music.wav" },
+	{ "Drum 'n base - PolishKiddo.wav" },
 };
 
 int music_iter = 0;
@@ -125,8 +125,8 @@ void initOpenGLProgram(GLFWwindow* window) {
 	//************Tutaj umieszczaj kod, który należy wykonać raz, na początku programu************
 	glClearColor(0, 0, 0, 1);
 	glEnable(GL_DEPTH_TEST);
-	glfwSetWindowSizeCallback(window,windowResizeCallback);
-	glfwSetKeyCallback(window,keyCallback);
+	glfwSetWindowSizeCallback(window, windowResizeCallback);
+	glfwSetKeyCallback(window, keyCallback);
 
 	// generate random trees
 	for (int i = -20000; i <= 20000; i += 500) {
@@ -174,6 +174,9 @@ void initOpenGLProgram(GLFWwindow* window) {
 	M_Track = glm::scale(M_Track, glm::vec3(100.0f, 1.0f, 100.0f));
 	M_Track = glm::translate(M_Track, glm::vec3(0.0f, 0.0f, -25.0f));
 	M_Track = glm::rotate(M_Track, -PI / 2, glm::vec3(1.0f, 0.0f, 0.0f));
+
+	Player.x = 8000.0f;
+	Player.z = -5000.0f;
 
 	PlaySoundA(("Sounds/" + music[music_iter++]).c_str(), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
 }
@@ -245,6 +248,12 @@ void drawScene(GLFWwindow* window) {
 
 
 int main(void) {
+	std::cout << "Welcome!" << std::endl;
+	std::cout << "- W, S, A, D - steering" << std::endl;
+	std::cout << "- SPACE - hand brake" << std::endl;
+	std::cout << "- ARROW DOWN - look behind" << std::endl;
+	std::cout << "- M - change music" << std::endl << std::endl;
+
 	GLFWwindow* window;
 
 	glfwSetErrorCallback(error_callback); // init error callback

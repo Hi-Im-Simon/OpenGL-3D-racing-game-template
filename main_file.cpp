@@ -28,6 +28,7 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include <windows.h>
 #include <mmsystem.h>
 #include <mciapi.h>
+#include <fstream>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -44,44 +45,41 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 #include "Car.h"
 #pragma comment(lib, "winmm.lib")
 
+
+std::fstream fs;
+
 Car Player("Models/Formula.fbx");
-//std::vector<glm::vec3> path{
-//	glm::vec3(1000, 0, 1000),
-//	glm::vec3(1000, 0, 0),
-//	glm::vec3(0, 0, 0),
-//	glm::vec3(0, 0, 1000)
-//	};
-//Car Ai0("Models/Formula.fbx", path);
 Model Sphere("Models/Sphere.fbx");
 Model Grass("Models/Grass.fbx", 200);
 Model Track("Models/Track.fbx", 50);
+Model Plane("Models/Plane.fbx");
 
-std::vector<Model> Trees = {
-	Model("Models/Plant.fbx", 5),
-};
+std::vector<Model> Trees = {};
 
-std::map<std::string, Model> Bands = {
-	{ "x0", Model("Models/Grass.fbx", 0.0f, 0.0f, -7500.0f, 36000.0f, 150.0f, 5.0f, 500) },
-	{ "x1", Model("Models/Grass.fbx", 0.0f, 0.0f, 7500.0f, 36000.0f, 150.0f, 5.0f, 500) },
-	{ "z0", Model("Models/Grass.fbx", -18000.0f, 0.0f, 0.0f, 5.0f, 150.0f, 15000.0f, 208) },
-	{ "z1", Model("Models/Grass.fbx", 18000.0f, 0.0f, 0.0f, 5.0f, 150.0f, 15000.0f, 208) }
+std::vector<Model> Bands = {
+	{ Model("Models/Grass.fbx", 0.0f, 0.0f, -7500.0f, 36000.0f, 150.0f, 5.0f, 500) },
+	{ Model("Models/Grass.fbx", 0.0f, 0.0f, 7500.0f, 36000.0f, 150.0f, 5.0f, 500) },
+	{ Model("Models/Grass.fbx", -18000.0f, 0.0f, 0.0f, 5.0f, 150.0f, 15000.0f, 208) },
+	{ Model("Models/Grass.fbx", 18000.0f, 0.0f, 0.0f, 5.0f, 150.0f, 15000.0f, 208) }
 };
 
 glm::mat4 M_Skybox = glm::mat4(1.0f);
 glm::mat4 M_Grass = glm::mat4(1.0f);
 glm::mat4 M_Track = glm::mat4(1.0f);
+glm::mat4 M_Plane = glm::mat4(1.0f);
 
+std::vector<glm::mat4> Ms_Trees = {};
 
-
-std::map<std::string, glm::mat4> Ms_Bands = {
-	{ "x0", glm::mat4(1.0f) },
-	{ "x1", glm::mat4(1.0f) },
-	{ "z0", glm::mat4(1.0f) },
-	{ "z1", glm::mat4(1.0f) }
+std::vector<glm::mat4> Ms_Bands = {
+	{ glm::mat4(1.0f) },
+	{ glm::mat4(1.0f) },
+	{ glm::mat4(1.0f) },
+	{ glm::mat4(1.0f) }
 };
 
 float aspect_ratio = 1;
 int camera_control = 1;
+float plane_rotation = 0.0f;
 
 
 //Procedura obsługi błędów
@@ -114,32 +112,53 @@ void initOpenGLProgram(GLFWwindow* window) {
 	glfwSetWindowSizeCallback(window,windowResizeCallback);
 	glfwSetKeyCallback(window,keyCallback);
 
+	// generate random trees
+	for (int i = -20000; i <= 20000; i += 500) {
+		float size = (float)(rand() % 100) / 100 + 1.0f;
+		Trees.push_back(Model("Models/Tree.fbx", (float)i + rand() % 400 - 200, 0.0f, -9500.0f, size, size, size, 50));
+		Ms_Trees.push_back(glm::mat4(1.0f));
+		size = (float)(rand() % 100) / 100 + 1.0f;
+		Trees.push_back(Model("Models/Tree.fbx", (float)i + rand() % 400 - 200, 0.0f, 9500.0f, size, size, size, 50));
+		Ms_Trees.push_back(glm::mat4(1.0f));
+	}
+	for (int i = -9000; i <= 9000; i += 500) {
+		float size = (float)(rand() % 100) / 100 + 1.0f;
+		Trees.push_back(Model("Models/Tree.fbx", -20000.0f, 0.0f, (float)i + rand() % 400 - 200, size, size, size, 50));
+		Ms_Trees.push_back(glm::mat4(1.0f));
+		size = (float)(rand() % 100) / 100 + 1.0f;
+		Trees.push_back(Model("Models/Tree.fbx", 20000.0f, 0.0f, (float)i + rand() % 400 - 200, size, size, size, 50));
+		Ms_Trees.push_back(glm::mat4(1.0f));
+	}
+
 	sp = new ShaderProgram("v_simplest.glsl", NULL, "f_simplest.glsl");
 	Player.readTexture("Textures/Formula.png");
-	//Ai0.readTexture("Textures/Formula.png");
 	Sphere.readTexture("Textures/Sphere.png");
 	Grass.readTexture("Textures/Grass.png");
 	Track.readTexture("Textures/Track.png");
+	Plane.readTexture("Textures/Car1.png");
 
-	for (auto it = Trees.begin(); it != Trees.end(); ++it) {
-		it->readTexture("Textures/Grass.png");
+	for (int i = 0; i < Trees.size(); i++) {
+		Trees[i].readTexture("Textures/Tree.png");
+		Ms_Trees[i] = glm::translate(Ms_Trees[i], glm::vec3(Trees[i].x, Trees[i].y, Trees[i].z));
+		Ms_Trees[i] = glm::scale(Ms_Trees[i], glm::vec3(Trees[i].size_x, Trees[i].size_y, Trees[i].size_z));
 	}
 
-	for (auto it = Bands.begin(); it != Bands.end(); ++it) {
-		(it->second).readTexture("Textures/Band.png");
-		Ms_Bands[it->first] = glm::translate(Ms_Bands[it->first], glm::vec3(it->second.x, it->second.y, it->second.z));
-		Ms_Bands[it->first] = glm::scale(Ms_Bands[it->first], glm::vec3(it->second.size_x * 0.5, it->second.size_y, it->second.size_z * 0.5));
+	for (int i = 0; i < Bands.size(); i++) {
+		Bands[i].readTexture("Textures/Band.png");
+		Ms_Bands[i] = glm::translate(Ms_Bands[i], glm::vec3(Bands[i].x, Bands[i].y, Bands[i].z));
+		Ms_Bands[i] = glm::scale(Ms_Bands[i], glm::vec3(Bands[i].size_x * 0.5, Bands[i].size_y, Bands[i].size_z * 0.5));
 	}
 
-	M_Skybox = glm::scale(M_Skybox, glm::vec3(1000.0f, 1000.0f, 1000.0f));
+	M_Skybox = glm::scale(M_Skybox, glm::vec3(2000.0f, 2000.0f, 2000.0f));
 	M_Grass = glm::scale(M_Grass, glm::vec3(25000.0f, 1.0f, 25000.0f));
+
 	M_Track = glm::scale(M_Track, glm::vec3(100.0f, 1.0f, 100.0f));
 	M_Track = glm::translate(M_Track, glm::vec3(0.0f, 0.0f, -25.0f));
 	M_Track = glm::rotate(M_Track, -PI / 2, glm::vec3(1.0f, 0.0f, 0.0f));
-	
 
-	mciSendString(TEXT("open \"Sounds/Music.mp3\" type mpegvideo alias mp3"), NULL, 0, NULL);
-	mciSendString(TEXT("play mp3 repeat"), NULL, 0, NULL);
+	/*mciSendString(TEXT("open \"Sounds/Music.mp3\" type mpegvideo alias mp3"), NULL, 0, NULL);
+	mciSendString(TEXT("play mp3 repeat"), NULL, 0, NULL);*/
+	PlaySound(TEXT("Sounds/Music.wav"), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
 }
 
 
@@ -189,13 +208,26 @@ void drawScene(GLFWwindow* window) {
 	Grass.drawModel(P, V, M_Grass, reflectPow, reflectPow);
 	Track.drawModel(P, V, M_Track, reflectPow, reflectPow);
 
-	for (auto it = Trees.begin(); it != Trees.end(); ++it) {
-		it->drawModel(P, V, glm::mat4(1.0f), 0.0, 0.0);
+	// move plane
+	M_Plane = glm::mat4(1.0f);
+	M_Plane = glm::translate(M_Plane, glm::vec3(25000.0f * cos(plane_rotation), 5000.0f, 25000.0f * sin(plane_rotation)));
+	M_Plane = glm::scale(M_Plane, glm::vec3(200.0f, 200.0f, 200.0f));
+	M_Plane = glm::rotate(M_Plane, PI / 2, glm::vec3(1.0f, 0.0f, 0.0f));
+	M_Plane = glm::rotate(M_Plane, (2*PI / 6.283f) * plane_rotation, glm::vec3(0.0f, 0.0f, 1.0f));
+
+	Plane.drawModel(P, V, M_Plane);
+	plane_rotation = plane_rotation + 0.005f;
+	if (plane_rotation >= 360.0f) plane_rotation -= 360.0f;
+
+	//std::cout << plane_rotation << std::endl;
+
+	for (int i = 0; i < Trees.size(); i++) {
+		Trees[i].drawModel(P, V, Ms_Trees[i], 0.0, 0.0);
 	}
 	
 
-	for (auto it = Bands.begin(); it != Bands.end(); ++it) {
-		(it->second).drawModel(P, V, Ms_Bands[it->first], reflectPow, reflectPow);
+	for (int i = 0; i < Bands.size(); i++) {
+		Bands[i].drawModel(P, V, Ms_Bands[i], reflectPow, reflectPow);
 	}
 
     glfwSwapBuffers(window); // swap back buffer to front

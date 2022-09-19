@@ -28,7 +28,6 @@ protected:
 	std::vector<unsigned int> indices;
 	GLuint tex = 0;
 
-
 public:
 	float x, y, z;
 	float size_x, size_y, size_z;

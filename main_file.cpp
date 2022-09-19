@@ -83,7 +83,9 @@ std::vector<glm::mat4> Ms_Bands = {
 };
 
 std::vector<std::string> music = {
-	{ "Drum 'n base - PolishKiddo.wav" },
+	{ "Drum 'n base - PolishKiddo" },
+	{ "boombap - PolishKiddo" },
+	{ "Empty roads - PolishKiddo" },
 };
 
 int music_iter = 0;
@@ -103,7 +105,7 @@ void keyCallback(GLFWwindow* window,int key,int scancode,int action,int mods) {
         if (key == GLFW_KEY_DOWN) camera_control = -1;
 		if (key == GLFW_KEY_M && !music_key_press) {
 			music_iter = (music_iter + 1) % music.size();
-			PlaySoundA(("Sounds/" + music[music_iter]).c_str(), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
+			PlaySoundA(("Sounds/" + music[music_iter] + ".wav").c_str(), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
 			music_key_press = true;
 		}
     }
@@ -178,7 +180,7 @@ void initOpenGLProgram(GLFWwindow* window) {
 	Player.x = 8000.0f;
 	Player.z = -5000.0f;
 
-	PlaySoundA(("Sounds/" + music[music_iter++]).c_str(), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
+	PlaySoundA(("Sounds/" + music[music_iter] + ".wav").c_str(), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
 }
 
 

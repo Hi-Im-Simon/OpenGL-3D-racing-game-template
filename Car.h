@@ -37,10 +37,10 @@ public:
 	void readInput(GLFWwindow* window) {
 		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
 			if (linear_speed >= 0) {
-				linear_speed = std::max(linear_speed - (speed_change / 2) , 0.0f);
+				linear_speed = std::max(linear_speed - (speed_change) , 0.0f);
 			}
 			else {
-				linear_speed = std::min(linear_speed + (speed_change / 2), 0.0f);
+				linear_speed = std::min(linear_speed + (speed_change), 0.0f);
 			}
 		}
 		else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
